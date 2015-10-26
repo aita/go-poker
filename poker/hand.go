@@ -1,7 +1,5 @@
 package poker
 
-import "log"
-
 type HandCategory int
 
 const (
@@ -49,8 +47,8 @@ func checkStaright(cards []Card) []Card {
 	}
 
 	var high Rank
-	n, pos := 0, 0
-	for i, rank := range straightRanks {
+	n := 0
+	for _, rank := range straightRanks {
 		if _, ok := ranks[rank]; ok {
 			n++
 		} else {
@@ -58,17 +56,16 @@ func checkStaright(cards []Card) []Card {
 		}
 		if n >= 5 {
 			high = rank
-			pos = i
 		}
 	}
 	var result []Card
 	if high > 0 {
-		for _, rank := range straightRanks[pos-4 : pos+1] {
+		for rank := high; rank > high-5; rank-- {
 			cs, _ := ranks[rank]
 			result = append(result, cs...)
 		}
-		SortCards(result)
 	}
+	SortCards(result)
 	return result
 }
 
@@ -79,10 +76,18 @@ func checkFlush(cards []Card) []Card {
 	}
 
 	for _, cs := range suits {
-		if len(cs) >= 5 {
-			SortCards(cs)
-			return cs[:5]
+		if len(cs) < 5 {
+			continue
 		}
+		result := []Card{}
+		for _, card := range cards {
+			for _, c := range cs {
+				if card == c {
+					result = append(result, c)
+				}
+			}
+		}
+		return result[:5]
 	}
 	return nil
 }
@@ -141,7 +146,6 @@ func checkPairs(cards []Card) (HandCategory, []Card) {
 	}
 	if hc == HighCard {
 		result = cards[:1]
-		log.Println(cards, result)
 	}
 	return hc, result
 }
