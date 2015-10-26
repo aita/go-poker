@@ -38,8 +38,6 @@ func (hc HandCategory) String() string {
 	return ""
 }
 
-var straightRanks = []Rank{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 1}
-
 func checkStaright(cards []Card) []Card {
 	ranks := map[Rank][]Card{}
 	for _, c := range cards {
@@ -48,7 +46,7 @@ func checkStaright(cards []Card) []Card {
 
 	var high Rank
 	n := 0
-	for _, rank := range straightRanks {
+	for _, rank := range []Rank{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 1} {
 		if _, ok := ranks[rank]; ok {
 			n++
 		} else {
