@@ -30,7 +30,7 @@ func cardsToString(cs []Card) string {
 func TestCardString(t *testing.T) {
 	card := Card{1, Diamonds}
 	if card.String() != "AD" {
-		t.Error("%s should be 1D.", card)
+		t.Errorf("%s should be 1D.", card)
 	}
 	card = Card{10, Clubs}
 	if card.String() != "TC" {
