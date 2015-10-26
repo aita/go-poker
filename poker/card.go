@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sort"
 	"strconv"
+	"strings"
 )
 
 type Rank int
@@ -33,14 +34,28 @@ func (rank Rank) String() string {
 	}
 }
 
-type Suit string
+type Suit int
 
 const (
-	Clubs    = Suit("Clubs")
-	Diamonds = Suit("Diamonds")
-	Hearts   = Suit("Hearts")
-	Spades   = Suit("Spades")
+	Clubs = Suit(iota)
+	Diamonds
+	Hearts
+	Spades
 )
+
+func (suit Suit) String() string {
+	switch suit {
+	case Clubs:
+		return "clubs"
+	case Diamonds:
+		return "diamonds"
+	case Hearts:
+		return "hearts"
+	case Spades:
+		return "Spades"
+	}
+	return ""
+}
 
 type Card struct {
 	Rank Rank
@@ -48,7 +63,7 @@ type Card struct {
 }
 
 func (card Card) String() string {
-	return fmt.Sprintf("%s%c", card.Rank, card.Suit[0])
+	return fmt.Sprintf("%s%c", card.Rank, strings.ToUpper(card.Suit.String())[0])
 }
 
 var InvalidCard = errors.New("Invalid card")
@@ -105,12 +120,16 @@ func (cs cardSorter) Len() int {
 }
 
 func (cs cardSorter) Swap(i, j int) {
-	cards := cs.cards
-	cards[i], cards[j] = cards[j], cards[i]
+	cs.cards[i], cs.cards[j] = cs.cards[j], cs.cards[i]
 }
 
 func (cs cardSorter) Less(i, j int) bool {
-	return cs.cards[i].Rank > cs.cards[i].Rank
+	cards := cs.cards
+	m, n := cards[i].Rank.Strength(), cards[j].Rank.Strength()
+	// if m == n {
+	// 	return cards[i].Suit > cards[j].Suit
+	// }
+	return m > n
 }
 
 func SortCards(cards []Card) {

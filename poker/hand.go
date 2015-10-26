@@ -1,5 +1,7 @@
 package poker
 
+import "log"
+
 type HandCategory int
 
 const (
@@ -78,7 +80,8 @@ func checkFlush(cards []Card) []Card {
 
 	for _, cs := range suits {
 		if len(cs) >= 5 {
-			return cs
+			SortCards(cs)
+			return cs[:5]
 		}
 	}
 	return nil
@@ -105,53 +108,68 @@ func checkPairs(cards []Card) (HandCategory, []Card) {
 	}
 	for rank, n := range four {
 		if n > 0 {
-			result := ranks[Rank(rank)]
-			return FourOfAKind, result
+			return FourOfAKind, ranks[Rank(rank)]
 		}
 	}
 	hc := HighCard
+	result := []Card{}
 	var high Rank
 	for rank, n := range three {
 		if n > 0 {
 			hc = ThreeOfAKind
 			if high < Rank(rank) {
 				high = Rank(rank)
+				result = ranks[Rank(rank)]
 			}
 		}
 	}
-	for _, n := range two {
-		if n > 0 {
+	for _, rank := range []Rank{1, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2} {
+		if two[rank-1] > 0 {
 			if hc == ThreeOfAKind {
 				hc = FullHouse
+				result = append(result, ranks[rank-1]...)
+				return hc, result
 			} else if hc == OnePair {
 				hc = TwoPair
+				result = append(result, ranks[rank-1]...)
+				return hc, result
 			} else {
 				hc = OnePair
+				result = append(result, ranks[rank-1]...)
 			}
 		}
 	}
-	return hc, cards
+	if hc == HighCard {
+		result = cards[:1]
+		log.Println(cards, result)
+	}
+	return hc, result
 }
 
-func PokerHand(cards []Card) (hc HandCategory, result []Card) {
+type PokerHand struct {
+	HandCategory HandCategory
+	Cards        []Card
+}
+
+func NewPokerHand(cards []Card) *PokerHand {
+	ph := PokerHand{}
 	SortCards(cards)
 	if cs := checkStaright(cards); cs != nil {
 		if cs2 := checkFlush(cs); cs2 != nil {
-			hc = StraightFlush
-			result = cs2
-			return
+			ph.HandCategory = StraightFlush
+			ph.Cards = cs2
+			return &ph
 		}
-		hc = Straight
-		result = cs
+		ph.HandCategory = Straight
+		ph.Cards = cs
 	}
 	if cs := checkFlush(cards); cs != nil {
-		hc = Flush
-		result = cs
+		ph.HandCategory = Flush
+		ph.Cards = cs
 	}
-	hc2, cs2 := checkPairs(cards)
-	if hc < hc2 {
-		hc = hc2
-		result = cs2
+	if hc, cs := checkPairs(cards); ph.HandCategory <= hc {
+		ph.HandCategory = hc
+		ph.Cards = cs
 	}
-	return
+	return &ph
 }

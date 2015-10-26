@@ -1,6 +1,31 @@
 package poker
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
+
+func parseCards(s string) []Card {
+	cards := []Card{}
+	for _, c := range strings.Split(s, " ") {
+		var card Card
+		if err := ParseCard(c, &card); err != nil {
+			panic(err)
+		}
+		cards = append(cards, card)
+	}
+	return cards
+}
+
+func cardsToString(cs []Card) string {
+	var tmp []Card
+	tmp = append(tmp, cs...)
+	codes := []string{}
+	for _, c := range tmp {
+		codes = append(codes, c.String())
+	}
+	return strings.Join(codes, " ")
+}
 
 func TestCardString(t *testing.T) {
 	card := Card{1, Diamonds}
@@ -84,5 +109,13 @@ func TestParseCard(t *testing.T) {
 
 	if err := ParseCard("HQ", &card); err == nil {
 		t.Errorf("%s should be an invalid card", card)
+	}
+}
+
+func TestSortCards(t *testing.T) {
+	cards := parseCards("KD QH AD 5H 3D 7H KS")
+	SortCards(cards)
+	if cs := cardsToString(cards); cs != "AD KD KS QH 7H 5H 3D" {
+		t.Errorf("%#v should be %s", cs, "AD KD KS QH 7H 5H 3D")
 	}
 }
