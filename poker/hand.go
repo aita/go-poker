@@ -38,6 +38,28 @@ func (hc HandCategory) String() string {
 	return ""
 }
 
+type PokerHand struct {
+	HandCategory HandCategory
+	Cards        []Card
+}
+
+func NewPokerHand(cards []Card) *PokerHand {
+	ph := PokerHand{}
+	SortCards(cards)
+	if ph2 := checkStraight(cards); ph2 != nil {
+		ph = *ph2
+	}
+	if ph2 := checkPairs(cards); ph.HandCategory <= ph2.HandCategory {
+		ph = *ph2
+	}
+	if ph.HandCategory < Flush {
+		if ph2 := checkFlush(cards); ph2 != nil {
+			ph = *ph2
+		}
+	}
+	return &ph
+}
+
 func checkStraight(cards []Card) *PokerHand {
 	ph := PokerHand{}
 	bins := [13][]Card{}
@@ -157,28 +179,6 @@ func checkPairs(cards []Card) *PokerHand {
 	if ph.HandCategory == HighCard {
 		ph.HandCategory = HighCard
 		ph.Cards = cards[:1]
-	}
-	return &ph
-}
-
-type PokerHand struct {
-	HandCategory HandCategory
-	Cards        []Card
-}
-
-func NewPokerHand(cards []Card) *PokerHand {
-	ph := PokerHand{}
-	SortCards(cards)
-	if ph2 := checkStraight(cards); ph2 != nil {
-		ph = *ph2
-	}
-	if ph2 := checkPairs(cards); ph.HandCategory <= ph2.HandCategory {
-		ph = *ph2
-	}
-	if ph.HandCategory < Flush {
-		if ph2 := checkFlush(cards); ph2 != nil {
-			ph = *ph2
-		}
 	}
 	return &ph
 }
