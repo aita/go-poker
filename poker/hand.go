@@ -129,39 +129,24 @@ func checkFlush(cards []Card) *PokerHand {
 func checkPairs(cards []Card) *PokerHand {
 	ph := PokerHand{}
 	bins := [13][]Card{}
+	counts := [13]int{}
 	for _, c := range cards {
 		bins[c.Rank-1] = append(bins[c.Rank-1], c)
+		counts[c.Rank-1]++
 	}
 
-	two := [13]int{}
-	three := [13]int{}
-	four := [13]int{}
-	for i, cs := range bins {
-		switch len(cs) {
-		case 2:
-			two[i]++
-		case 3:
-			three[i]++
-		case 4:
-			four[i]++
-		}
-	}
-	for i, n := range four {
-		if n > 0 {
+	for i, c := range counts {
+		if c == 4 {
 			ph.Cards = bins[i]
 			ph.HandCategory = FourOfAKind
 			return &ph
-		}
-	}
-
-	for i, n := range three {
-		if n > 0 {
-			ph.HandCategory = ThreeOfAKind
+		} else if c == 3 {
 			ph.Cards = bins[i]
+			ph.HandCategory = ThreeOfAKind
 		}
 	}
 	for _, rank := range [...]Rank{1, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2} {
-		if two[rank-1] > 0 {
+		if counts[rank-1] == 2 {
 			if ph.HandCategory == ThreeOfAKind {
 				ph.HandCategory = FullHouse
 				ph.Cards = append(ph.Cards, bins[rank-1]...)
