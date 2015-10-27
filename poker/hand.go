@@ -45,17 +45,19 @@ func checkStraight(cards []Card) *PokerHand {
 		bins[c.Rank-1] = append(bins[c.Rank-1], c)
 	}
 
-	var cs []Card
 	var n int
-	for _, rank := range [...]Rank{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 1} {
+	ranks := [...]Rank{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 1}
+	for i, rank := range ranks {
 		if bins[rank-1] != nil {
 			n++
-			cs = append(cs, bins[rank-1]...)
 		} else {
 			n = 0
-			cs = nil
 		}
 		if n >= 5 {
+			cs := []Card{}
+			for _, r := range ranks[i-4 : i+1] {
+				cs = append(cs, bins[r-1]...)
+			}
 			if ph2 := checkFlush(cs); ph2 != nil {
 				ph.Cards = ph2.Cards
 				ph.HandCategory = StraightFlush

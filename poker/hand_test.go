@@ -22,6 +22,15 @@ func TestPokerHandStraight(t *testing.T) {
 	if cs := cardsToString(ph.Cards); cs != "AH 5H 4S 3C 2S" {
 		t.Errorf("%#v should be %s", cs, "AH 5H 4S 3C 2S")
 	}
+
+	cards = "2H 3D 4D 5S 6H 7H 8H"
+	ph = NewPokerHand(parseCards(cards))
+	if ph.HandCategory != Straight {
+		t.Errorf("%v should be straight but %s", ph.Cards, ph.HandCategory)
+	}
+	if cs := cardsToString(ph.Cards); cs != "8H 7H 6H 5S 4D" {
+		t.Errorf("%#v should be %s", cs, "8H 7H 6H 5S 4D")
+	}
 }
 
 func TestPokerHandStraightFlush(t *testing.T) {
@@ -42,7 +51,6 @@ func TestPokerHandStraightFlush(t *testing.T) {
 	if cs := cardsToString(ph.Cards); cs != "6H 5H 4H 3H 2H" {
 		t.Errorf("%#v should be %s", cs, "6H 5H 4H 3H 2H")
 	}
-
 }
 
 func TestPokerHandFourOfAKind(t *testing.T) {
