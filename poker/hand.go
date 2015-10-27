@@ -38,118 +38,125 @@ func (hc HandCategory) String() string {
 	return ""
 }
 
-func checkStaright(cards []Card) []Card {
-	ranks := map[Rank][]Card{}
+func checkStraight(cards []Card) *PokerHand {
+	ph := PokerHand{}
+	bins := [13][]Card{}
 	for _, c := range cards {
-		ranks[c.Rank] = append(ranks[c.Rank], c)
+		bins[c.Rank-1] = append(bins[c.Rank-1], c)
 	}
 
-	var high Rank
-	n := 0
-	for _, rank := range []Rank{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 1} {
-		if _, ok := ranks[rank]; ok {
+	var cs []Card
+	var n int
+	for _, rank := range [...]Rank{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 1} {
+		if bins[rank-1] != nil {
 			n++
+			cs = append(cs, bins[rank-1]...)
 		} else {
 			n = 0
+			cs = nil
 		}
 		if n >= 5 {
-			high = rank
-		}
-	}
-	var result []Card
-	if high > 0 {
-		for rank := high; rank > high-5; rank-- {
-			for _, card := range cards {
-				if card.Rank == rank {
-					result = append(result, card)
-					break
-				}
+			if ph2 := checkFlush(cs); ph2 != nil {
+				ph.Cards = ph2.Cards
+				ph.HandCategory = StraightFlush
+			} else if ph.HandCategory != StraightFlush {
+				ph.Cards = cs
+				ph.HandCategory = Straight
 			}
 		}
-		SortCards(result)
 	}
-	return result
-}
-
-func checkFlush(cards []Card) []Card {
-	suits := map[Suit][]Card{}
-	for _, c := range cards {
-		suits[c.Suit] = append(suits[c.Suit], c)
-	}
-
-	for _, cs := range suits {
-		if len(cs) < 5 {
-			continue
+	if ph.HandCategory == Straight || ph.HandCategory == StraightFlush {
+		SortCards(ph.Cards)
+		if len(ph.Cards) > 5 {
+			ph.Cards = ph.Cards[:5]
 		}
-		result := []Card{}
-		for _, card := range cards {
-			for _, c := range cs {
-				if card == c {
-					result = append(result, c)
-				}
-			}
-		}
-		return result[:5]
+		return &ph
 	}
 	return nil
 }
 
-func checkPairs(cards []Card) (HandCategory, []Card) {
-	ranks := map[Rank][]Card{}
+func checkFlush(cards []Card) *PokerHand {
+	ph := PokerHand{}
+	bins := [4][]Card{}
 	for _, c := range cards {
-		ranks[c.Rank] = append(ranks[c.Rank], c)
+		bins[c.Suit] = append(bins[c.Suit], c)
+	}
+
+	for _, cs := range bins {
+		if len(cs) < 5 {
+			continue
+		}
+		ph.HandCategory = Flush
+		for _, card := range cards {
+			for _, c := range cs {
+				if card == c {
+					ph.Cards = append(ph.Cards, c)
+				}
+			}
+		}
+		if len(ph.Cards) > 5 {
+			ph.Cards = ph.Cards[:5]
+		}
+		return &ph
+	}
+	return nil
+}
+
+func checkPairs(cards []Card) *PokerHand {
+	ph := PokerHand{}
+	bins := [13][]Card{}
+	for _, c := range cards {
+		bins[c.Rank-1] = append(bins[c.Rank-1], c)
 	}
 
 	two := [13]int{}
 	three := [13]int{}
 	four := [13]int{}
-	for rank, cs := range ranks {
+	for i, cs := range bins {
 		switch len(cs) {
 		case 2:
-			two[rank]++
+			two[i]++
 		case 3:
-			three[rank]++
+			three[i]++
 		case 4:
-			four[rank]++
+			four[i]++
 		}
 	}
-	for rank, n := range four {
+	for i, n := range four {
 		if n > 0 {
-			return FourOfAKind, ranks[Rank(rank)]
+			ph.Cards = bins[i]
+			ph.HandCategory = FourOfAKind
+			return &ph
 		}
 	}
-	hc := HighCard
-	result := []Card{}
-	var high Rank
-	for rank, n := range three {
+
+	for i, n := range three {
 		if n > 0 {
-			hc = ThreeOfAKind
-			if high < Rank(rank) {
-				high = Rank(rank)
-				result = ranks[Rank(rank)]
-			}
+			ph.HandCategory = ThreeOfAKind
+			ph.Cards = bins[i]
 		}
 	}
-	for _, rank := range []Rank{1, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2} {
+	for _, rank := range [...]Rank{1, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2} {
 		if two[rank-1] > 0 {
-			if hc == ThreeOfAKind {
-				hc = FullHouse
-				result = append(result, ranks[rank-1]...)
-				return hc, result
-			} else if hc == OnePair {
-				hc = TwoPair
-				result = append(result, ranks[rank-1]...)
-				return hc, result
+			if ph.HandCategory == ThreeOfAKind {
+				ph.HandCategory = FullHouse
+				ph.Cards = append(ph.Cards, bins[rank-1]...)
+				return &ph
+			} else if ph.HandCategory == OnePair {
+				ph.HandCategory = TwoPair
+				ph.Cards = append(ph.Cards, bins[rank-1]...)
+				return &ph
 			} else {
-				hc = OnePair
-				result = append(result, ranks[rank-1]...)
+				ph.HandCategory = OnePair
+				ph.Cards = append(ph.Cards, bins[rank-1]...)
 			}
 		}
 	}
-	if hc == HighCard {
-		result = cards[:1]
+	if ph.HandCategory == HighCard {
+		ph.HandCategory = HighCard
+		ph.Cards = cards[:1]
 	}
-	return hc, result
+	return &ph
 }
 
 type PokerHand struct {
@@ -160,22 +167,16 @@ type PokerHand struct {
 func NewPokerHand(cards []Card) *PokerHand {
 	ph := PokerHand{}
 	SortCards(cards)
-	if cs := checkStaright(cards); cs != nil {
-		if cs2 := checkFlush(cs); cs2 != nil {
-			ph.HandCategory = StraightFlush
-			ph.Cards = cs2
-			return &ph
+	if ph2 := checkStraight(cards); ph2 != nil {
+		ph = *ph2
+	}
+	if ph2 := checkPairs(cards); ph.HandCategory <= ph2.HandCategory {
+		ph = *ph2
+	}
+	if ph.HandCategory < Flush {
+		if ph2 := checkFlush(cards); ph2 != nil {
+			ph = *ph2
 		}
-		ph.HandCategory = Straight
-		ph.Cards = cs
-	}
-	if cs := checkFlush(cards); cs != nil {
-		ph.HandCategory = Flush
-		ph.Cards = cs
-	}
-	if hc, cs := checkPairs(cards); ph.HandCategory <= hc {
-		ph.HandCategory = hc
-		ph.Cards = cs
 	}
 	return &ph
 }
