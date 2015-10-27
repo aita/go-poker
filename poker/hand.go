@@ -59,11 +59,15 @@ func checkStaright(cards []Card) []Card {
 	var result []Card
 	if high > 0 {
 		for rank := high; rank > high-5; rank-- {
-			cs, _ := ranks[rank]
-			result = append(result, cs...)
+			for _, card := range cards {
+				if card.Rank == rank {
+					result = append(result, card)
+					break
+				}
+			}
 		}
+		SortCards(result)
 	}
-	SortCards(result)
 	return result
 }
 

@@ -14,13 +14,13 @@ func TestPokerHandFlush(t *testing.T) {
 }
 
 func TestPokerHandStraight(t *testing.T) {
-	cards := "AH 2D 3C 6H 8D 4S 5H"
+	cards := "AH 2S 3C TH 2C 4S 5H"
 	ph := NewPokerHand(parseCards(cards))
 	if ph.HandCategory != Straight {
 		t.Errorf("%#v should be straight but %s", cards, ph.HandCategory)
 	}
-	if cs := cardsToString(ph.Cards); cs != "6H 5H 4S 3C 2D" {
-		t.Errorf("%#v should be %s", cs, "6H 5H 4S 3C 2D")
+	if cs := cardsToString(ph.Cards); cs != "AH 5H 4S 3C 2S" {
+		t.Errorf("%#v should be %s", cs, "AH 5H 4S 3C 2S")
 	}
 }
 
